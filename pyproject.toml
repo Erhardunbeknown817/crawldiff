@@ -1,0 +1,75 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "crawldiff"
+version = "0.1.0"
+description = "git log for any website. Track what changed on any site with AI-powered summaries."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.12"
+authors = [{ name = "crawldiff contributors" }]
+keywords = [
+    "cloudflare", "crawl", "diff", "website", "monitoring",
+    "ai", "cli", "web-scraping", "change-detection", "changelog",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Software Development :: Testing",
+    "Topic :: Utilities",
+]
+dependencies = [
+    "typer[all]>=0.9.0",
+    "rich>=13.0.0",
+    "httpx>=0.27.0",
+]
+
+[project.optional-dependencies]
+ai = [
+    "anthropic>=0.40.0",
+    "openai>=1.50.0",
+]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24.0",
+    "respx>=0.21.0",
+    "ruff>=0.8.0",
+    "mypy>=1.13.0",
+]
+all = ["crawldiff[ai,dev]"]
+
+[project.scripts]
+crawldiff = "crawldiff.cli:app"
+
+[project.urls]
+Homepage = "https://github.com/GeoRouv/crawldiff"
+Repository = "https://github.com/GeoRouv/crawldiff"
+Issues = "https://github.com/GeoRouv/crawldiff/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/crawldiff"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+src = ["src"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "B", "SIM"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"

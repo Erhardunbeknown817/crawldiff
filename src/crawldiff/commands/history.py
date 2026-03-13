@@ -17,7 +17,7 @@ def history(
     conn = get_db()
     try:
         crawls = list_crawls(conn, normalized)
-        rows = [
+        rows: list[dict[str, str | int]] = [
             {
                 "job_id": c.crawl_job_id,
                 "crawled_at": c.crawled_at,

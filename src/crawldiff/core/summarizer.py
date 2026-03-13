@@ -102,8 +102,13 @@ async def _summarize_cloudflare(prompt: str, config: SummaryConfig) -> str:
     if resp.status_code != 200:
         return f"[AI summary failed: {resp.status_code}]"
 
-    data = resp.json()
-    return data.get("result", {}).get("response", "[No summary generated]")
+    data: dict[str, object] = resp.json()
+    result = data.get("result")
+    if isinstance(result, dict):
+        response = result.get("response")
+        if isinstance(response, str):
+            return response
+    return "[No summary generated]"
 
 
 async def _summarize_anthropic(prompt: str, config: SummaryConfig) -> str:
@@ -116,13 +121,20 @@ async def _summarize_anthropic(prompt: str, config: SummaryConfig) -> str:
     client = anthropic.AsyncAnthropic(api_key=config.api_key)
     model = config.model or "claude-haiku-4-5-20251001"
 
-    message = await client.messages.create(
-        model=model,
-        max_tokens=1024,
-        messages=[{"role": "user", "content": prompt}],
-    )
+    try:
+        message = await client.messages.create(
+            model=model,
+            max_tokens=1024,
+            messages=[{"role": "user", "content": prompt}],
+        )
+    except Exception as e:  # noqa: BLE001 — catch all API/network errors gracefully
+        return f"[AI summary failed: {e}]"
 
-    return message.content[0].text if message.content else "[No summary generated]"
+    if message.content:
+        block = message.content[0]
+        if hasattr(block, "text"):
+            return str(block.text)
+    return "[No summary generated]"
 
 
 async def _summarize_openai(prompt: str, config: SummaryConfig) -> str:
@@ -135,15 +147,18 @@ async def _summarize_openai(prompt: str, config: SummaryConfig) -> str:
     client = openai.AsyncOpenAI(api_key=config.api_key)
     model = config.model or "gpt-4o-mini"
 
-    response = await client.chat.completions.create(
-        model=model,
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=1024,
-    )
+    try:
+        response = await client.chat.completions.create(
+            model=model,
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=1024,
+        )
+    except Exception as e:  # noqa: BLE001 — catch all API/network errors gracefully
+        return f"[AI summary failed: {e}]"
 
     choice = response.choices[0] if response.choices else None
     if choice and choice.message and choice.message.content:
-        return choice.message.content
+        return str(choice.message.content)
     return "[No summary generated]"
 
 

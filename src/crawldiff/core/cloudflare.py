@@ -110,7 +110,7 @@ async def start_crawl(
     # Fallback: result might be an object with "id"
     if isinstance(result, dict):
         job_id = result.get("id", "")
-        if job_id:
+        if isinstance(job_id, str) and job_id:
             return job_id
     raise CloudflareError(f"No job ID in response: {data}")
 
@@ -219,7 +219,7 @@ def _handle_error(resp: httpx.Response) -> None:
             "; ".join(e.get("message", "") for e in errors)
             if errors else resp.text
         )
-    except Exception:
+    except (ValueError, KeyError):
         msg = resp.text
 
     error_map: dict[int, str] = {

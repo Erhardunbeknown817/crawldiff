@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-import re
 from datetime import UTC, datetime
 
 import typer
@@ -15,6 +14,7 @@ from crawldiff.core.storage import get_db, get_latest_snapshots, get_snapshots_b
 from crawldiff.core.summarizer import summarize_diff
 from crawldiff.output.terminal import print_diff_result, print_error
 from crawldiff.utils.config import ConfigError, get_cloudflare_credentials, get_value
+from crawldiff.utils.duration import parse_duration
 from crawldiff.utils.url import normalize_url
 
 err = Console(stderr=True)
@@ -35,7 +35,7 @@ def watch(
         raise typer.Exit(1) from None
 
     normalized = normalize_url(url)
-    interval = _parse_interval(every)
+    interval = int(parse_duration(every).total_seconds())
 
     err.print(f"[bold]Watching[/bold] {normalized} every {every}")
     err.print("[dim]Press Ctrl+C to stop[/dim]\n")
@@ -64,6 +64,8 @@ async def _watch_loop(
 ) -> None:
     """Main watch loop."""
     check_count = 0
+    consecutive_failures = 0
+    max_consecutive_failures = 5
 
     while True:
         check_count += 1
@@ -104,8 +106,16 @@ async def _watch_loop(
             else:
                 err.print(f"[green]Initial snapshot saved ({len(result.pages)} pages)[/green]")
 
+            consecutive_failures = 0
+
         except cloudflare.CloudflareError as e:
+            consecutive_failures += 1
             print_error(str(e))
+            if consecutive_failures >= max_consecutive_failures:
+                print_error(
+                    f"Stopping after {max_consecutive_failures} consecutive failures."
+                )
+                raise typer.Exit(1) from None
         finally:
             conn.close()
 
@@ -113,18 +123,6 @@ async def _watch_loop(
         err.print(f"[dim]Next check in {_format_seconds(interval)}...[/dim]\n")
         await asyncio.sleep(interval)
 
-
-def _parse_interval(s: str) -> int:
-    """Parse interval string to seconds."""
-    match = re.match(r"^(\d+)\s*([mhd])$", s.strip().lower())
-    if not match:
-        raise typer.BadParameter(
-            f"Invalid interval: '{s}'. Use format like 30m, 1h, 6h"
-        )
-    amount = int(match.group(1))
-    unit = match.group(2)
-    multipliers = {"m": 60, "h": 3600, "d": 86400}
-    return amount * multipliers[unit]
 
 
 def _format_seconds(s: int) -> str:

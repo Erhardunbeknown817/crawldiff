@@ -3,21 +3,21 @@
 from __future__ import annotations
 
 import asyncio
-import re
 import sys
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from pathlib import Path
 
 import typer
 
 from crawldiff.core import cloudflare
 from crawldiff.core.differ import diff_snapshots
-from crawldiff.core.storage import get_db, get_latest_snapshots, save_snapshot
+from crawldiff.core.storage import get_db, get_latest_snapshots, get_snapshots_by_job, save_snapshot
 from crawldiff.core.summarizer import summarize_diff
 from crawldiff.output.json_out import print_diff_json
 from crawldiff.output.markdown import render_diff_markdown
 from crawldiff.output.terminal import print_diff_result, print_error
 from crawldiff.utils.config import ConfigError, get_cloudflare_credentials, get_value
+from crawldiff.utils.duration import parse_duration
 from crawldiff.utils.url import normalize_url
 
 
@@ -86,7 +86,7 @@ async def _do_diff(
             raise typer.Exit(1) from None
 
         # Parse the 'since' duration to get modifiedSince
-        since_delta = _parse_duration(since)
+        since_delta = parse_duration(since)
         modified_since = datetime.now(UTC) - since_delta
 
         # Crawl with modifiedSince for efficiency
@@ -112,7 +112,6 @@ async def _do_diff(
         # Build the full new page set for diffing:
         # modifiedSince only returns changed pages, so we merge
         # the new results with old pages that weren't re-crawled
-        from crawldiff.core.storage import get_snapshots_by_job
         changed_pages = get_snapshots_by_job(conn, job_id) if new_page_dicts else []
         changed_urls = {p.url for p in changed_pages}
 
@@ -151,20 +150,3 @@ async def _do_diff(
         conn.close()
 
 
-def _parse_duration(s: str) -> timedelta:
-    """Parse a human-friendly duration string into a timedelta.
-
-    Supports: 30m, 1h, 6h, 1d, 7d, 2w, 30d, etc.
-    """
-    match = re.match(r"^(\d+)\s*([mhdw])$", s.strip().lower())
-    if not match:
-        raise typer.BadParameter(
-            f"Invalid duration: '{s}'. Use format like 1h, 7d, 2w, 30d"
-        )
-
-    amount = int(match.group(1))
-    unit = match.group(2)
-
-    multipliers = {"m": 60, "h": 3600, "d": 86400, "w": 604800}
-    seconds = amount * multipliers[unit]
-    return timedelta(seconds=seconds)

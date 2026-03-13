@@ -94,10 +94,11 @@ def get_or_create_site(conn: sqlite3.Connection, url: str) -> int:
     """Get site ID, creating the record if needed."""
     row = conn.execute("SELECT id FROM sites WHERE url = ?", (url,)).fetchone()
     if row:
-        return row["id"]
+        return int(row["id"])
     cursor = conn.execute("INSERT INTO sites (url) VALUES (?)", (url,))
     conn.commit()
-    return cursor.lastrowid  # type: ignore[return-value]
+    assert cursor.lastrowid is not None
+    return cursor.lastrowid
 
 
 def save_snapshot(
@@ -221,4 +222,5 @@ def save_diff_record(
         (site_id, old_job_id, new_job_id, pages_added, pages_removed, pages_changed, ai_summary),
     )
     conn.commit()
-    return cursor.lastrowid  # type: ignore[return-value]
+    assert cursor.lastrowid is not None
+    return cursor.lastrowid

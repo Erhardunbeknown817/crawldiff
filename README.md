@@ -8,6 +8,7 @@
     Powered by Cloudflare's <a href="https://developers.cloudflare.com/browser-rendering/rest-api/crawl-endpoint/">/crawl</a> endpoint.
   </p>
   <p align="center">
+    <a href="https://github.com/GeoRouv/crawldiff/actions/workflows/ci.yml"><img src="https://github.com/GeoRouv/crawldiff/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
     <a href="https://pypi.org/project/crawldiff/"><img src="https://img.shields.io/pypi/v/crawldiff?color=blue" alt="PyPI"></a>
     <a href="https://github.com/GeoRouv/crawldiff/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License"></a>
     <a href="https://python.org"><img src="https://img.shields.io/badge/python-3.12+-blue" alt="Python"></a>

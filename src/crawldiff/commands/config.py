@@ -67,7 +67,7 @@ def config_show() -> None:
     print_config_table(flat)
 
 
-def _flatten(d: dict, prefix: str, result: dict[str, str]) -> None:
+def _flatten(d: dict[str, object], prefix: str, result: dict[str, str]) -> None:
     """Flatten nested dict to dot-notation keys."""
     for k, v in d.items():
         full_key = f"{prefix}.{k}" if prefix else k

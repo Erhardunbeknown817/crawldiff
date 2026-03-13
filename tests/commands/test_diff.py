@@ -7,7 +7,7 @@ from datetime import timedelta
 import pytest
 import typer
 
-from crawldiff.commands.diff import _parse_duration
+from crawldiff.utils.duration import parse_duration as _parse_duration
 
 
 def test_parse_duration_minutes():

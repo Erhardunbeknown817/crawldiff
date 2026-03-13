@@ -93,3 +93,158 @@ async def test_summarize_no_changes():
     empty_diff = DiffResult()
     result = await summarize_diff(empty_diff, config)
     assert "no meaningful changes" in result.lower() or result == ""
+
+
+@pytest.mark.asyncio
+async def test_summarize_anthropic():
+    """Test Anthropic Claude summarization with mocked client."""
+    from unittest.mock import AsyncMock, MagicMock, patch
+
+    mock_block = MagicMock()
+    mock_block.text = "Pricing increased from $25 to $30."
+
+    mock_message = MagicMock()
+    mock_message.content = [mock_block]
+
+    mock_client = MagicMock()
+    mock_client.messages.create = AsyncMock(return_value=mock_message)
+
+    mock_anthropic = MagicMock()
+    mock_anthropic.AsyncAnthropic.return_value = mock_client
+
+    config = SummaryConfig(
+        provider="anthropic", model="claude-haiku-4-5-20251001",
+        api_key="sk-test-123",
+    )
+
+    with patch.dict("sys.modules", {"anthropic": mock_anthropic}):
+        result = await summarize_diff(_make_diff_result(), config)
+
+    assert "Pricing" in result or "pricing" in result
+
+
+@pytest.mark.asyncio
+async def test_summarize_anthropic_api_error():
+    """Anthropic API error should return error message, not crash."""
+    from unittest.mock import AsyncMock, MagicMock, patch
+
+    mock_client = MagicMock()
+    mock_client.messages.create = AsyncMock(side_effect=Exception("Invalid API key"))
+
+    mock_anthropic = MagicMock()
+    mock_anthropic.AsyncAnthropic.return_value = mock_client
+
+    config = SummaryConfig(
+        provider="anthropic", model="claude-haiku-4-5-20251001",
+        api_key="bad-key",
+    )
+
+    with patch.dict("sys.modules", {"anthropic": mock_anthropic}):
+        result = await summarize_diff(_make_diff_result(), config)
+
+    assert "failed" in result.lower()
+
+
+@pytest.mark.asyncio
+async def test_summarize_anthropic_empty_content():
+    """Anthropic returning empty content should not crash."""
+    from unittest.mock import AsyncMock, MagicMock, patch
+
+    mock_message = MagicMock()
+    mock_message.content = []
+
+    mock_client = MagicMock()
+    mock_client.messages.create = AsyncMock(return_value=mock_message)
+
+    mock_anthropic = MagicMock()
+    mock_anthropic.AsyncAnthropic.return_value = mock_client
+
+    config = SummaryConfig(
+        provider="anthropic", model="claude-haiku-4-5-20251001",
+        api_key="sk-test",
+    )
+
+    with patch.dict("sys.modules", {"anthropic": mock_anthropic}):
+        result = await summarize_diff(_make_diff_result(), config)
+
+    assert "No summary generated" in result
+
+
+@pytest.mark.asyncio
+async def test_summarize_openai():
+    """Test OpenAI summarization with mocked client."""
+    from unittest.mock import AsyncMock, MagicMock, patch
+
+    mock_message = MagicMock()
+    mock_message.content = "Pricing went up. New blog page added."
+
+    mock_choice = MagicMock()
+    mock_choice.message = mock_message
+
+    mock_response = MagicMock()
+    mock_response.choices = [mock_choice]
+
+    mock_client = MagicMock()
+    mock_client.chat.completions.create = AsyncMock(return_value=mock_response)
+
+    mock_openai = MagicMock()
+    mock_openai.AsyncOpenAI.return_value = mock_client
+
+    config = SummaryConfig(
+        provider="openai", model="gpt-4o-mini",
+        api_key="sk-test-123",
+    )
+
+    with patch.dict("sys.modules", {"openai": mock_openai}):
+        result = await summarize_diff(_make_diff_result(), config)
+
+    assert "Pricing" in result or "pricing" in result
+
+
+@pytest.mark.asyncio
+async def test_summarize_openai_api_error():
+    """OpenAI API error should return error message, not crash."""
+    from unittest.mock import AsyncMock, MagicMock, patch
+
+    mock_client = MagicMock()
+    mock_client.chat.completions.create = AsyncMock(
+        side_effect=Exception("Rate limit exceeded")
+    )
+
+    mock_openai = MagicMock()
+    mock_openai.AsyncOpenAI.return_value = mock_client
+
+    config = SummaryConfig(
+        provider="openai", model="gpt-4o-mini",
+        api_key="bad-key",
+    )
+
+    with patch.dict("sys.modules", {"openai": mock_openai}):
+        result = await summarize_diff(_make_diff_result(), config)
+
+    assert "failed" in result.lower()
+
+
+@pytest.mark.asyncio
+async def test_summarize_openai_empty_choices():
+    """OpenAI returning empty choices should not crash."""
+    from unittest.mock import AsyncMock, MagicMock, patch
+
+    mock_response = MagicMock()
+    mock_response.choices = []
+
+    mock_client = MagicMock()
+    mock_client.chat.completions.create = AsyncMock(return_value=mock_response)
+
+    mock_openai = MagicMock()
+    mock_openai.AsyncOpenAI.return_value = mock_client
+
+    config = SummaryConfig(
+        provider="openai", model="gpt-4o-mini",
+        api_key="sk-test",
+    )
+
+    with patch.dict("sys.modules", {"openai": mock_openai}):
+        result = await summarize_diff(_make_diff_result(), config)
+
+    assert "No summary generated" in result

@@ -16,6 +16,10 @@
 
 ---
 
+<p align="center">
+  <img src="assets/demo.svg" alt="crawldiff demo" width="750">
+</p>
+
 ```bash
 pip install crawldiff
 ```
@@ -26,36 +30,6 @@ crawldiff crawl https://stripe.com/pricing
 
 # Come back later. See what changed.
 crawldiff diff https://stripe.com/pricing --since 7d
-```
-
-```
-╭─ stripe.com/pricing ─────────────────────────╮
-│  3 pages changed, 1 added, 0 removed         │
-╰───────────────────────────────────────────────╯
-
-~ CHANGED   https://stripe.com/pricing
---- a/https://stripe.com/pricing
-+++ b/https://stripe.com/pricing
-@@ -3,3 +3,7 @@
- ## Starter
-
--$25/month
-+$30/month
-
- ## Pro
-
- $99/month
-+
-+## Enterprise
-+
-+Custom pricing
-
-╭─ AI Summary ──────────────────────────────────╮
-│                                               │
-│  • Starter plan increased from $25 to $30/mo  │
-│  • New "Enterprise" tier with custom pricing  │
-│                                               │
-╰───────────────────────────────────────────────╯
 ```
 
 ## Why

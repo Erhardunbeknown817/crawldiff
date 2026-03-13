@@ -97,16 +97,24 @@ async def _do_diff(
 
         result = await cloudflare.wait_for_crawl(account_id, api_token, job_id)
 
-        # Save new snapshots
+        # Save new snapshots (only the changed pages returned by API)
         new_page_dicts = [
             {"url": p.url, "markdown": p.markdown, "html": p.html}
             for p in result.pages
         ]
-        save_snapshot(conn, url, new_page_dicts, job_id)
+        if new_page_dicts:
+            save_snapshot(conn, url, new_page_dicts, job_id)
 
-        # Build new page snapshots for diffing
+        # Build the full new page set for diffing:
+        # modifiedSince only returns changed pages, so we merge
+        # the new results with old pages that weren't re-crawled
         from crawldiff.core.storage import get_snapshots_by_job
-        new_pages = get_snapshots_by_job(conn, job_id)
+        changed_pages = get_snapshots_by_job(conn, job_id) if new_page_dicts else []
+        changed_urls = {p.url for p in changed_pages}
+
+        # Carry forward unchanged old pages + overlay changed pages
+        new_pages = [p for p in old_pages if p.url not in changed_urls]
+        new_pages.extend(changed_pages)
 
         # Diff
         diff_result = diff_snapshots(

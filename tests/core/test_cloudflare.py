@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import UTC
+from datetime import UTC, datetime
 
 import httpx
 import pytest
@@ -25,7 +25,7 @@ BASE = f"https://api.cloudflare.com/client/v4/accounts/{ACCOUNT_ID}/browser-rend
 async def test_start_crawl_returns_job_id():
     respx.post(BASE).mock(return_value=httpx.Response(
         200,
-        json={"success": True, "result": {"id": "job-abc-123"}},
+        json={"success": True, "result": "job-abc-123"},
     ))
 
     job_id = await start_crawl(ACCOUNT_ID, API_TOKEN, "https://example.com")
@@ -37,7 +37,7 @@ async def test_start_crawl_returns_job_id():
 async def test_start_crawl_sends_correct_body():
     route = respx.post(BASE).mock(return_value=httpx.Response(
         200,
-        json={"success": True, "result": {"id": "job-123"}},
+        json={"success": True, "result": "job-123"},
     ))
 
     await start_crawl(
@@ -49,19 +49,17 @@ async def test_start_crawl_sends_correct_body():
     import json
     body = json.loads(request.content)
     assert body["url"] == "https://example.com"
-    assert body["maxDepth"] == 3
-    assert body["maxPages"] == 100
-    assert body["scrapeOptions"]["formats"] == ["markdown"]
+    assert body["depth"] == 3
+    assert body["limit"] == 100
+    assert body["formats"] == ["markdown"]
 
 
 @pytest.mark.asyncio
 @respx.mock
 async def test_start_crawl_with_modified_since():
-    from datetime import datetime
-
     route = respx.post(BASE).mock(return_value=httpx.Response(
         200,
-        json={"success": True, "result": {"id": "job-123"}},
+        json={"success": True, "result": "job-123"},
     ))
 
     since = datetime(2026, 3, 10, 0, 0, 0, tzinfo=UTC)
@@ -73,7 +71,7 @@ async def test_start_crawl_with_modified_since():
     import json
     body = json.loads(route.calls[0].request.content)
     assert "modifiedSince" in body
-    assert "2026-03-10" in body["modifiedSince"]
+    assert isinstance(body["modifiedSince"], int)
 
 
 @pytest.mark.asyncio
@@ -97,20 +95,21 @@ async def test_get_crawl_result_complete():
             "success": True,
             "result": {
                 "id": "job-123",
-                "status": "complete",
-                "totalPages": 2,
-                "pages": [
+                "status": "completed",
+                "total": 2,
+                "finished": 2,
+                "records": [
                     {
                         "url": "https://example.com/",
+                        "status": "completed",
+                        "metadata": {"status": 200, "title": "Home"},
                         "markdown": "# Home",
-                        "html": "<h1>Home</h1>",
-                        "status_code": 200,
                     },
                     {
                         "url": "https://example.com/about",
+                        "status": "completed",
+                        "metadata": {"status": 200, "title": "About"},
                         "markdown": "# About",
-                        "html": "<h1>About</h1>",
-                        "status_code": 200,
                     },
                 ],
             },
@@ -118,10 +117,41 @@ async def test_get_crawl_result_complete():
     ))
 
     result = await get_crawl_result(ACCOUNT_ID, API_TOKEN, "job-123")
-    assert result.status == CrawlStatus.COMPLETE
+    assert result.status == CrawlStatus.COMPLETED
     assert len(result.pages) == 2
     assert result.pages[0].url == "https://example.com/"
     assert result.pages[0].markdown == "# Home"
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_get_crawl_result_skips_non_completed():
+    respx.get(f"{BASE}/job-123").mock(return_value=httpx.Response(
+        200,
+        json={
+            "success": True,
+            "result": {
+                "id": "job-123",
+                "status": "completed",
+                "total": 2,
+                "records": [
+                    {
+                        "url": "https://example.com/",
+                        "status": "completed",
+                        "metadata": {"status": 200},
+                        "markdown": "# Home",
+                    },
+                    {
+                        "url": "https://external.com/",
+                        "status": "skipped",
+                    },
+                ],
+            },
+        },
+    ))
+
+    result = await get_crawl_result(ACCOUNT_ID, API_TOKEN, "job-123")
+    assert len(result.pages) == 1
 
 
 @pytest.mark.asyncio
@@ -131,7 +161,11 @@ async def test_get_crawl_result_pending():
         200,
         json={
             "success": True,
-            "result": {"id": "job-123", "status": "running", "pages": []},
+            "result": {
+                "id": "job-123",
+                "status": "running",
+                "records": [],
+            },
         },
     ))
 

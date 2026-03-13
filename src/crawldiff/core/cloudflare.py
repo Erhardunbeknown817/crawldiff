@@ -25,7 +25,7 @@ MAX_POLL_ATTEMPTS = 200  # ~10 minutes max wait
 class CrawlStatus(Enum):
     PENDING = "pending"
     RUNNING = "running"
-    COMPLETE = "complete"
+    COMPLETED = "completed"
     FAILED = "failed"
 
 
@@ -81,16 +81,17 @@ async def start_crawl(
 
     body: dict[str, Any] = {
         "url": url,
-        "scrapeOptions": {"formats": formats},
-        "maxPages": max_pages,
-        "maxDepth": depth,
+        "formats": formats,
+        "limit": max_pages,
+        "depth": depth,
     }
 
     if not render:
         body["render"] = False
 
     if modified_since:
-        body["modifiedSince"] = modified_since.isoformat() + "Z"
+        # Cloudflare expects unix timestamp in seconds
+        body["modifiedSince"] = int(modified_since.timestamp())
 
     async with httpx.AsyncClient(timeout=30) as client:
         resp = await client.post(
@@ -101,10 +102,17 @@ async def start_crawl(
 
     _handle_error(resp)
     data = resp.json()
-    job_id = data.get("result", {}).get("id", "")
-    if not job_id:
-        raise CloudflareError(f"No job ID in response: {data}")
-    return job_id
+
+    # Result is a plain string (the job ID) on success
+    result = data.get("result", "")
+    if isinstance(result, str) and result:
+        return result
+    # Fallback: result might be an object with "id"
+    if isinstance(result, dict):
+        job_id = result.get("id", "")
+        if job_id:
+            return job_id
+    raise CloudflareError(f"No job ID in response: {data}")
 
 
 async def get_crawl_result(
@@ -130,19 +138,23 @@ async def get_crawl_result(
         status = CrawlStatus.PENDING
 
     pages: list[CrawlPage] = []
-    for page_data in result.get("pages", []):
+    for record in result.get("records", []):
+        # Skip non-completed records (e.g., "skipped")
+        if record.get("status") != "completed":
+            continue
+        metadata = record.get("metadata", {})
         pages.append(CrawlPage(
-            url=page_data.get("url", ""),
-            markdown=page_data.get("markdown", ""),
-            html=page_data.get("html", ""),
-            status_code=page_data.get("status_code", 200),
+            url=record.get("url", ""),
+            markdown=record.get("markdown", ""),
+            html=record.get("html", ""),
+            status_code=metadata.get("status", 200),
         ))
 
     return CrawlResult(
         job_id=job_id,
         status=status,
         pages=pages,
-        total_pages=result.get("totalPages", len(pages)),
+        total_pages=result.get("total", len(pages)),
     )
 
 
@@ -167,7 +179,7 @@ async def wait_for_crawl(
         for attempt in range(MAX_POLL_ATTEMPTS):
             result = await get_crawl_result(account_id, api_token, job_id)
 
-            if result.status == CrawlStatus.COMPLETE:
+            if result.status == CrawlStatus.COMPLETED:
                 progress.update(
                     task,
                     description=f"Crawl complete — {len(result.pages)} pages",
@@ -180,13 +192,18 @@ async def wait_for_crawl(
             pages_so_far = len(result.pages)
             progress.update(
                 task,
-                description=f"Crawling... {pages_so_far} pages found (attempt {attempt + 1})",
+                description=(
+                    f"Crawling... {pages_so_far} pages found"
+                    f" (attempt {attempt + 1})"
+                ),
             )
 
             await asyncio.sleep(poll_interval)
 
     timeout_secs = MAX_POLL_ATTEMPTS * poll_interval
-    raise CloudflareError(f"Crawl job {job_id} timed out after {timeout_secs}s.")
+    raise CloudflareError(
+        f"Crawl job {job_id} timed out after {timeout_secs}s."
+    )
 
 
 def _handle_error(resp: httpx.Response) -> None:
@@ -198,7 +215,10 @@ def _handle_error(resp: httpx.Response) -> None:
     try:
         body = resp.json()
         errors = body.get("errors", [])
-        msg = "; ".join(e.get("message", "") for e in errors) if errors else resp.text
+        msg = (
+            "; ".join(e.get("message", "") for e in errors)
+            if errors else resp.text
+        )
     except Exception:
         msg = resp.text
 

@@ -9,7 +9,7 @@ description = "git log for any website. Track what changed on any site with AI-p
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.12"
-authors = [{ name = "crawldiff contributors" }]
+authors = [{ name = "George Rouvalis" }]
 keywords = [
     "cloudflare", "crawl", "diff", "website", "monitoring",
     "ai", "cli", "web-scraping", "change-detection", "changelog",

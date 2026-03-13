@@ -188,13 +188,7 @@ crawldiff config           Manage settings
 
 ## Contributing
 
-```bash
-git clone https://github.com/GeoRouv/crawldiff
-cd crawldiff
-python -m venv .venv && source .venv/bin/activate
-pip install -e ".[all]"
-pytest
-```
+Contributions welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for setup and guidelines.
 
 ## License
 

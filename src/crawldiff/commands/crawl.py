@@ -28,7 +28,11 @@ def crawl(
         raise typer.Exit(1) from None
 
     normalized = normalize_url(url)
-    asyncio.run(_do_crawl(account_id, api_token, normalized, depth, max_pages, not no_render))
+    try:
+        asyncio.run(_do_crawl(account_id, api_token, normalized, depth, max_pages, not no_render))
+    except cloudflare.CloudflareError as e:
+        print_error(str(e))
+        raise typer.Exit(1) from None
 
 
 async def _do_crawl(

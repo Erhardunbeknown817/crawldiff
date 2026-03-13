@@ -43,16 +43,20 @@ def diff(
         raise typer.Exit(1) from None
 
     normalized = normalize_url(url)
-    asyncio.run(_do_diff(
-        account_id, api_token, normalized,
-        since=since,
-        format=format,
-        output_path=output,
-        no_summary=no_summary,
-        depth=depth,
-        max_pages=max_pages,
-        ignore_whitespace=ignore_whitespace,
-    ))
+    try:
+        asyncio.run(_do_diff(
+            account_id, api_token, normalized,
+            since=since,
+            format=format,
+            output_path=output,
+            no_summary=no_summary,
+            depth=depth,
+            max_pages=max_pages,
+            ignore_whitespace=ignore_whitespace,
+        ))
+    except cloudflare.CloudflareError as e:
+        print_error(str(e))
+        raise typer.Exit(1) from None
 
 
 async def _do_diff(

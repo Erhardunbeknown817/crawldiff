@@ -53,6 +53,13 @@ def diff(
         with contextlib.suppress(ValueError):
             max_pages = int(val) if val else 50
 
+    if depth < 1:
+        print_error("Depth must be at least 1.")
+        raise typer.Exit(1) from None
+    if max_pages < 1:
+        print_error("Max pages must be at least 1.")
+        raise typer.Exit(1) from None
+
     valid_formats = {"terminal", "json", "markdown"}
     if format not in valid_formats:
         print_error(f"Invalid format: '{format}'. Choose from: {', '.join(sorted(valid_formats))}")

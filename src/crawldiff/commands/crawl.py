@@ -51,6 +51,13 @@ def crawl(
     if max_pages == 50:
         max_pages = _default_max_pages()
 
+    if depth < 1:
+        print_error("Depth must be at least 1.")
+        raise typer.Exit(1) from None
+    if max_pages < 1:
+        print_error("Max pages must be at least 1.")
+        raise typer.Exit(1) from None
+
     normalized = normalize_url(url)
     try:
         asyncio.run(_do_crawl(account_id, api_token, normalized, depth, max_pages, not no_render))

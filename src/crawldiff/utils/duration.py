@@ -22,5 +22,10 @@ def parse_duration(s: str) -> timedelta:
     amount = int(match.group(1))
     unit = match.group(2)
 
+    if amount == 0:
+        raise typer.BadParameter(
+            f"Invalid duration: '{s}'. Value must be greater than zero."
+        )
+
     multipliers = {"m": 60, "h": 3600, "d": 86400, "w": 604800}
     return timedelta(seconds=amount * multipliers[unit])

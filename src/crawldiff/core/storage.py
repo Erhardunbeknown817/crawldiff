@@ -112,18 +112,22 @@ def save_snapshot(
     """Save a crawl's pages as snapshots. Returns site_id."""
     site_id = get_or_create_site(conn, site_url)
 
-    for page in pages:
-        md = page.get("markdown", "")
-        html = page.get("html", "")
-        page_hash = content_hash(md or html)
-        conn.execute(
-            """INSERT INTO snapshots
-               (site_id, url, content_md, content_html, content_hash, crawl_job_id)
-               VALUES (?, ?, ?, ?, ?, ?)""",
-            (site_id, page["url"], md, html, page_hash, crawl_job_id),
-        )
+    try:
+        for page in pages:
+            md = page.get("markdown", "")
+            html = page.get("html", "")
+            page_hash = content_hash(md or html)
+            conn.execute(
+                """INSERT INTO snapshots
+                   (site_id, url, content_md, content_html, content_hash, crawl_job_id)
+                   VALUES (?, ?, ?, ?, ?, ?)""",
+                (site_id, page["url"], md, html, page_hash, crawl_job_id),
+            )
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
 
-    conn.commit()
     return site_id
 
 

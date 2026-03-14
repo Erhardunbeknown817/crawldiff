@@ -47,6 +47,13 @@ def watch(
         with contextlib.suppress(ValueError):
             max_pages = int(val) if val else 50
 
+    if depth < 1:
+        print_error("Depth must be at least 1.")
+        raise typer.Exit(1) from None
+    if max_pages < 1:
+        print_error("Max pages must be at least 1.")
+        raise typer.Exit(1) from None
+
     normalized = normalize_url(url)
     interval = int(parse_duration(every).total_seconds())
 
@@ -156,10 +163,11 @@ async def _watch_loop(
 
         # Wait for next interval, checking shutdown flag periodically
         err.print(f"[dim]Next check in {_format_seconds(interval)}...[/dim]\n")
-        elapsed = 0
-        while elapsed < interval and not shutdown_flag():
-            await asyncio.sleep(min(1, interval - elapsed))
-            elapsed += 1
+        remaining = interval
+        while remaining > 0 and not shutdown_flag():
+            chunk = min(1, remaining)
+            await asyncio.sleep(chunk)
+            remaining -= chunk
 
 
 

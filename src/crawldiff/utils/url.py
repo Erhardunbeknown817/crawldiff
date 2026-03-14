@@ -12,12 +12,18 @@ def normalize_url(url: str) -> str:
     - Strips trailing slashes
     - Lowercases the hostname
     """
+    url = url.strip()
+    if not url:
+        raise ValueError("URL cannot be empty")
+
     if not url.startswith(("http://", "https://")):
         url = "https://" + url
 
     parsed = urlparse(url)
     # Lowercase hostname
     hostname = (parsed.hostname or "").lower()
+    if not hostname:
+        raise ValueError(f"Invalid URL: no hostname found in '{url}'")
     # Handle invalid port numbers gracefully
     try:
         port_part = f":{parsed.port}" if parsed.port else ""

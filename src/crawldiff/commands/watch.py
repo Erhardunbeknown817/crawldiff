@@ -34,6 +34,14 @@ def watch(
         print_error(str(e))
         raise typer.Exit(1) from None
 
+    # Apply config defaults when CLI defaults are unchanged
+    if depth == 2:
+        val = get_value("defaults.depth")
+        depth = int(val) if val else 2
+    if max_pages == 50:
+        val = get_value("defaults.max_pages")
+        max_pages = int(val) if val else 50
+
     normalized = normalize_url(url)
     interval = int(parse_duration(every).total_seconds())
 

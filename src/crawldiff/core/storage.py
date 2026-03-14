@@ -9,7 +9,6 @@ from __future__ import annotations
 import hashlib
 import sqlite3
 from dataclasses import dataclass
-from datetime import datetime
 from pathlib import Path
 
 from crawldiff.utils.config import DB_PATH, ensure_dir
@@ -148,32 +147,6 @@ def get_latest_snapshots(conn: sqlite3.Connection, site_url: str) -> list[PageSn
     return [PageSnapshot(**dict(r)) for r in rows]
 
 
-def get_snapshots_before(
-    conn: sqlite3.Connection,
-    site_url: str,
-    before: datetime,
-) -> list[PageSnapshot]:
-    """Get the most recent snapshot for each page before a given time."""
-    site_id_row = conn.execute("SELECT id FROM sites WHERE url = ?", (site_url,)).fetchone()
-    if not site_id_row:
-        return []
-
-    site_id = site_id_row["id"]
-    before_str = before.isoformat()
-    rows = conn.execute(
-        """SELECT s.* FROM snapshots s
-           INNER JOIN (
-               SELECT url, MAX(id) as max_id
-               FROM snapshots WHERE site_id = ? AND crawled_at <= ?
-               GROUP BY url
-           ) latest ON s.id = latest.max_id
-           WHERE s.site_id = ?""",
-        (site_id, before_str, site_id),
-    ).fetchall()
-
-    return [PageSnapshot(**dict(r)) for r in rows]
-
-
 def get_snapshots_by_job(conn: sqlite3.Connection, crawl_job_id: str) -> list[PageSnapshot]:
     """Get all snapshots from a specific crawl job."""
     rows = conn.execute(
@@ -205,26 +178,3 @@ def list_crawls(conn: sqlite3.Connection, site_url: str) -> list[CrawlRecord]:
     ) for r in rows]
 
 
-def save_diff_record(
-    conn: sqlite3.Connection,
-    site_url: str,
-    old_job_id: str,
-    new_job_id: str,
-    pages_added: int,
-    pages_removed: int,
-    pages_changed: int,
-    ai_summary: str = "",
-) -> int:
-    """Save a diff record for history."""
-    site_id = get_or_create_site(conn, site_url)
-    cursor = conn.execute(
-        """INSERT INTO diffs (site_id, crawl_old_job, crawl_new_job,
-           pages_added, pages_removed, pages_changed, ai_summary)
-           VALUES (?, ?, ?, ?, ?, ?, ?)""",
-        (site_id, old_job_id, new_job_id, pages_added, pages_removed, pages_changed, ai_summary),
-    )
-    conn.commit()
-    if cursor.lastrowid is None:
-        msg = "Database insert failed: no row ID returned"
-        raise RuntimeError(msg)
-    return cursor.lastrowid

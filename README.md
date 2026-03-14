@@ -33,11 +33,9 @@ crawldiff crawl https://stripe.com/pricing
 crawldiff diff https://stripe.com/pricing --since 7d
 ```
 
-## Why
+## What is this
 
-Every website monitoring tool is a SaaS dashboard built for marketing teams.
-
-**crawldiff** is for developers. It's a CLI. It diffs like git. It summarizes with AI. It stores everything locally. And it's powered by Cloudflare's brand new [`/crawl` endpoint](https://blog.cloudflare.com/crawl-entire-websites-with-a-single-api-call-using-browser-rendering/) — the same infrastructure that powers the internet.
+A CLI tool for tracking website changes over time. It crawls pages via Cloudflare's [`/crawl` endpoint](https://blog.cloudflare.com/crawl-entire-websites-with-a-single-api-call-using-browser-rendering/), stores markdown snapshots locally in SQLite, and produces unified diffs between crawls. Optionally summarizes changes with AI.
 
 No SaaS subscriptions. No proprietary dashboards. Just `crawldiff diff`.
 
@@ -118,7 +116,7 @@ crawldiff diff https://example.com --since 7d --ignore-whitespace
 
 ## AI Summaries (optional)
 
-Raw diffs are useful. AI summaries make them *actionable*. crawldiff supports three providers:
+crawldiff can optionally summarize diffs using an LLM. Three providers are supported:
 
 ```bash
 # Cloudflare Workers AI (free, uses your existing CF account)
@@ -151,30 +149,19 @@ Don't want AI? Just use `--no-summary`. Diffs work perfectly without it.
    └─→ Syntax-highlighted diffs in the terminal (via rich)
 ```
 
-The key insight: Cloudflare's `modifiedSince` parameter means **incremental crawling is built-in**. On repeat diffs, only changed pages are fetched. Fast and cheap.
+Cloudflare's `modifiedSince` parameter means repeat diffs only fetch changed pages, not the entire site.
 
-## Why Cloudflare /crawl?
+## Comparison
 
-| | crawldiff (Cloudflare) | Firecrawl | Crawl4AI |
-|---|---|---|---|
-| **Free tier** | 5 jobs/day, 100 pages | 500 credits | Self-host |
-| **Incremental crawling** | Built-in (`modifiedSince`) | No | No |
-| **Browser rendering** | Headless Chrome at the edge | Yes | Yes |
-| **Respects robots.txt** | By default | Opt-in | No |
-| **Pricing** | $5/mo (Workers Paid) | From $16/mo | Free (self-host) |
-| **Infrastructure** | Cloudflare's global network | Their servers | Your servers |
-
-## vs. other monitoring tools
-
-| Feature | crawldiff | Visualping | changedetection.io | Firecrawl |
-|---------|-----------|------------|-------------------|-----------|
-| Open source | **Yes** | No | Yes | Yes |
-| CLI-native | **Yes** | No | No | No |
-| AI summaries | **Yes** | No | No | No |
-| Incremental crawling | **Yes** | No | No | No |
-| Local storage | **Yes** | No | No | No |
-| JSON/pipe output | **Yes** | No | Yes | Yes |
-| Free | **Yes** | Limited | Yes | Limited |
+| | crawldiff | Visualping | changedetection.io | Firecrawl |
+|---|---|---|---|---|
+| Open source | Yes | No | Yes | Yes |
+| CLI-native | Yes | No | No | No |
+| AI summaries | Yes | No | No | No |
+| Incremental crawling | Yes (`modifiedSince`) | No | No | No |
+| Local storage | Yes | No | No | No |
+| JSON/pipe output | Yes | No | Yes | Yes |
+| Free tier | 5 jobs/day, 100 pages | Limited | Yes (self-host) | 500 credits |
 
 ## All commands
 

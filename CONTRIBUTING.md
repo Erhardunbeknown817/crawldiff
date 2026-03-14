@@ -14,7 +14,7 @@ python3 -m venv .venv
 source .venv/bin/activate
 
 # Install in development mode with all dependencies
-pip install -e ".[all]"
+pip install -e ".[dev]"
 ```
 
 ## Development workflow

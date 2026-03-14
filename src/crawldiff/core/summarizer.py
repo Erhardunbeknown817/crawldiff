@@ -105,7 +105,10 @@ async def _summarize_cloudflare(prompt: str, config: SummaryConfig) -> str:
     if resp.status_code != 200:
         return f"[AI summary failed: {resp.status_code}]"
 
-    data: dict[str, object] = resp.json()
+    try:
+        data: dict[str, object] = resp.json()
+    except (ValueError, UnicodeDecodeError):
+        return "[AI summary failed: invalid response]"
     result = data.get("result")
     if isinstance(result, dict):
         response = result.get("response")

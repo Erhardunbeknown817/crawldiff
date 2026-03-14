@@ -24,6 +24,14 @@ MAX_RETRIES = 3  # retry on transient errors
 RETRY_BASE_DELAY = 5  # seconds, doubles on each retry
 
 
+def _parse_json(resp: httpx.Response) -> dict[str, Any]:
+    """Parse JSON response, raising CloudflareError on invalid JSON."""
+    try:
+        return resp.json()  # type: ignore[no-any-return]
+    except (ValueError, UnicodeDecodeError) as e:
+        raise CloudflareError(f"Invalid response from Cloudflare API: {e}") from e
+
+
 class CrawlStatus(Enum):
     PENDING = "pending"
     RUNNING = "running"
@@ -98,7 +106,7 @@ async def start_crawl(
     resp = await _request_with_retry(
         "POST", _crawl_url(account_id), api_token, json=body,
     )
-    data = resp.json()
+    data = _parse_json(resp)
 
     # Result is a plain string (the job ID) on success
     result = data.get("result", "")
@@ -121,7 +129,7 @@ async def get_crawl_result(
     resp = await _request_with_retry(
         "GET", f"{_crawl_url(account_id)}/{job_id}", api_token,
     )
-    data = resp.json()
+    data = _parse_json(resp)
     result = data.get("result", {})
 
     status_str = result.get("status", "pending")

@@ -161,7 +161,7 @@ The key insight: Cloudflare's `modifiedSince` parameter means **incremental craw
 | **Incremental crawling** | Built-in (`modifiedSince`) | No | No |
 | **Browser rendering** | Headless Chrome at the edge | Yes | Yes |
 | **Respects robots.txt** | By default | Opt-in | No |
-| **Pricing** | $5/mo (Workers Paid) | $47/mo | Free (self-host) |
+| **Pricing** | $5/mo (Workers Paid) | From $16/mo | Free (self-host) |
 | **Infrastructure** | Cloudflare's global network | Their servers | Your servers |
 
 ## vs. other monitoring tools
@@ -183,7 +183,7 @@ crawldiff crawl <url>      Snapshot a website
 crawldiff diff <url>       Show what changed (the main command)
 crawldiff watch <url>      Monitor continuously
 crawldiff history <url>    View past snapshots
-crawldiff config           Manage settings
+crawldiff config set|get|show   Manage settings
 ```
 
 ## Contributing

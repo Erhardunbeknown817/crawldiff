@@ -49,7 +49,7 @@ def render_diff_markdown(
         for page in diff_result.pages_changed:
             lines.append(f"### {page.url}\n")
             lines.append("```diff")
-            lines.append(page.unified_diff)
+            lines.append(page.unified_diff.rstrip("\n"))
             lines.append("```\n")
 
     return "\n".join(lines)

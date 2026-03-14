@@ -103,19 +103,9 @@ async def _watch_loop(
         now = datetime.now(UTC)
         err.print(f"[cyan]Check #{check_count}[/cyan] at {now.strftime('%H:%M:%S UTC')}")
 
+        conn = None
         try:
             conn = get_db()
-        except Exception as e:  # noqa: BLE001
-            consecutive_failures += 1
-            print_error(f"Database error: {e}")
-            if consecutive_failures >= max_consecutive_failures:
-                print_error(
-                    f"Stopping after {max_consecutive_failures} consecutive failures."
-                )
-                raise typer.Exit(1) from None
-            continue
-
-        try:
             old_pages = get_latest_snapshots(conn, url)
 
             # Crawl
@@ -170,7 +160,8 @@ async def _watch_loop(
                 )
                 raise typer.Exit(1) from None
         finally:
-            conn.close()
+            if conn is not None:
+                conn.close()
 
         # Wait for next interval, checking shutdown flag periodically
         err.print(f"[dim]Next check in {_format_seconds(interval)}...[/dim]\n")

@@ -31,18 +31,6 @@ CREATE TABLE IF NOT EXISTS snapshots (
     crawled_at TEXT DEFAULT (datetime('now'))
 );
 
-CREATE TABLE IF NOT EXISTS diffs (
-    id INTEGER PRIMARY KEY,
-    site_id INTEGER REFERENCES sites(id),
-    crawl_old_job TEXT,
-    crawl_new_job TEXT,
-    pages_added INTEGER DEFAULT 0,
-    pages_removed INTEGER DEFAULT 0,
-    pages_changed INTEGER DEFAULT 0,
-    ai_summary TEXT,
-    created_at TEXT DEFAULT (datetime('now'))
-);
-
 CREATE INDEX IF NOT EXISTS idx_snapshots_site_url
     ON snapshots(site_id, url, crawled_at);
 

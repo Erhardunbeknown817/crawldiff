@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from crawldiff.utils.url import get_domain, normalize_url
+from crawldiff.utils.url import normalize_url
 
 
 def test_normalize_adds_https():
@@ -39,15 +39,3 @@ def test_normalize_preserves_port():
 
 def test_normalize_root_path():
     assert normalize_url("https://example.com") == "https://example.com/"
-
-
-def test_get_domain_basic():
-    assert get_domain("https://example.com/about") == "example.com"
-
-
-def test_get_domain_without_scheme():
-    assert get_domain("example.com") == "example.com"
-
-
-def test_get_domain_with_subdomain():
-    assert get_domain("https://blog.example.com/post") == "blog.example.com"

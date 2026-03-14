@@ -39,9 +39,3 @@ def normalize_url(url: str) -> str:
         "",  # drop fragment
     ))
     return normalized
-
-
-def get_domain(url: str) -> str:
-    """Extract the domain from a URL."""
-    parsed = urlparse(normalize_url(url))
-    return parsed.hostname or url

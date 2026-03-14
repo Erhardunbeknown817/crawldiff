@@ -46,7 +46,6 @@ class CrawlPage:
     url: str
     markdown: str = ""
     html: str = ""
-    status_code: int = 200
 
 
 @dataclass
@@ -143,12 +142,10 @@ async def get_crawl_result(
         # Skip non-completed records (e.g., "skipped")
         if record.get("status") != "completed":
             continue
-        metadata = record.get("metadata", {})
         pages.append(CrawlPage(
             url=record.get("url", ""),
             markdown=record.get("markdown", ""),
             html=record.get("html", ""),
-            status_code=metadata.get("status", 200),
         ))
 
     return CrawlResult(

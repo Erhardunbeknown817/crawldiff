@@ -21,13 +21,6 @@ WATCH_ERROR = "crawldiff.commands.watch.print_error"
 
 
 @pytest.fixture
-def tmp_db(tmp_path: Path) -> sqlite3.Connection:
-    conn = get_db(tmp_path / "test.db")
-    yield conn
-    conn.close()
-
-
-@pytest.fixture
 def db_with_snapshot(tmp_db: sqlite3.Connection) -> sqlite3.Connection:
     pages = [
         {"url": "https://example.com/", "markdown": "# Home\nOriginal", "html": ""},

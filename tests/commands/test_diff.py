@@ -11,7 +11,7 @@ from click.exceptions import Exit
 
 from crawldiff.commands.diff import _do_diff
 from crawldiff.core.cloudflare import CrawlPage, CrawlResult, CrawlStatus
-from crawldiff.core.storage import get_db, save_snapshot
+from crawldiff.core.storage import save_snapshot
 
 DIFF_START = "crawldiff.commands.diff.cloudflare.start_crawl"
 DIFF_WAIT = "crawldiff.commands.diff.cloudflare.wait_for_crawl"
@@ -24,13 +24,6 @@ DIFF_KWARGS = dict(
     since="7d", format="terminal", output_path=None,
     no_summary=True, depth=2, max_pages=50, ignore_whitespace=False,
 )
-
-
-@pytest.fixture
-def tmp_db(tmp_path: Path) -> sqlite3.Connection:
-    conn = get_db(tmp_path / "test.db")
-    yield conn
-    conn.close()
 
 
 @pytest.fixture

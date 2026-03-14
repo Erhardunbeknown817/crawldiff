@@ -10,26 +10,8 @@ import typer
 from crawldiff.core import cloudflare
 from crawldiff.core.storage import get_db, save_snapshot
 from crawldiff.output.terminal import print_crawl_summary, print_error
-from crawldiff.utils.config import ConfigError, get_cloudflare_credentials, get_value
+from crawldiff.utils.config import ConfigError, get_cloudflare_credentials, get_int_default
 from crawldiff.utils.url import normalize_url
-
-
-def _default_depth() -> int:
-    """Read depth from config, falling back to 2."""
-    val = get_value("defaults.depth")
-    try:
-        return int(val) if val else 2
-    except ValueError:
-        return 2
-
-
-def _default_max_pages() -> int:
-    """Read max_pages from config, falling back to 50."""
-    val = get_value("defaults.max_pages")
-    try:
-        return int(val) if val else 50
-    except ValueError:
-        return 50
 
 
 def crawl(
@@ -47,9 +29,9 @@ def crawl(
 
     # Apply config defaults when CLI defaults are unchanged
     if depth == 2:
-        depth = _default_depth()
+        depth = get_int_default("defaults.depth", 2)
     if max_pages == 50:
-        max_pages = _default_max_pages()
+        max_pages = get_int_default("defaults.max_pages", 50)
 
     if depth < 1:
         print_error("Depth must be at least 1.")

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-import contextlib
 import signal
 from collections.abc import Callable
 from datetime import UTC, datetime
@@ -16,7 +15,12 @@ from crawldiff.core.differ import diff_snapshots
 from crawldiff.core.storage import get_db, get_latest_snapshots, get_snapshots_by_job, save_snapshot
 from crawldiff.core.summarizer import summarize_diff
 from crawldiff.output.terminal import print_diff_result, print_error
-from crawldiff.utils.config import ConfigError, get_cloudflare_credentials, get_value
+from crawldiff.utils.config import (
+    ConfigError,
+    get_cloudflare_credentials,
+    get_int_default,
+    get_value,
+)
 from crawldiff.utils.duration import parse_duration
 from crawldiff.utils.url import normalize_url
 
@@ -39,13 +43,9 @@ def watch(
 
     # Apply config defaults when CLI defaults are unchanged
     if depth == 2:
-        val = get_value("defaults.depth")
-        with contextlib.suppress(ValueError):
-            depth = int(val) if val else 2
+        depth = get_int_default("defaults.depth", 2)
     if max_pages == 50:
-        val = get_value("defaults.max_pages")
-        with contextlib.suppress(ValueError):
-            max_pages = int(val) if val else 50
+        max_pages = get_int_default("defaults.max_pages", 50)
 
     if depth < 1:
         print_error("Depth must be at least 1.")

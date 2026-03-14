@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-import contextlib
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
@@ -17,9 +16,16 @@ from crawldiff.core.summarizer import summarize_diff
 from crawldiff.output.json_out import print_diff_json
 from crawldiff.output.markdown import render_diff_markdown
 from crawldiff.output.terminal import print_diff_result, print_error
-from crawldiff.utils.config import ConfigError, get_cloudflare_credentials, get_value
+from crawldiff.utils.config import (
+    ConfigError,
+    get_cloudflare_credentials,
+    get_int_default,
+    get_value,
+)
 from crawldiff.utils.duration import parse_duration
 from crawldiff.utils.url import normalize_url
+
+VALID_FORMATS = {"terminal", "json", "markdown"}
 
 
 def diff(
@@ -45,13 +51,9 @@ def diff(
 
     # Apply config defaults when CLI defaults are unchanged
     if depth == 2:
-        val = get_value("defaults.depth")
-        with contextlib.suppress(ValueError):
-            depth = int(val) if val else 2
+        depth = get_int_default("defaults.depth", 2)
     if max_pages == 50:
-        val = get_value("defaults.max_pages")
-        with contextlib.suppress(ValueError):
-            max_pages = int(val) if val else 50
+        max_pages = get_int_default("defaults.max_pages", 50)
 
     if depth < 1:
         print_error("Depth must be at least 1.")
@@ -60,9 +62,8 @@ def diff(
         print_error("Max pages must be at least 1.")
         raise typer.Exit(1) from None
 
-    valid_formats = {"terminal", "json", "markdown"}
-    if format not in valid_formats:
-        print_error(f"Invalid format: '{format}'. Choose from: {', '.join(sorted(valid_formats))}")
+    if format not in VALID_FORMATS:
+        print_error(f"Invalid format: '{format}'. Choose from: {', '.join(sorted(VALID_FORMATS))}")
         raise typer.Exit(1) from None
 
     normalized = normalize_url(url)

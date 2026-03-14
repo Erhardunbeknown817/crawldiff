@@ -91,6 +91,15 @@ def get_value(key: str) -> str:
     return str(current) if current else ""
 
 
+def get_int_default(key: str, default: int) -> int:
+    """Get a config value as int, returning default if missing or invalid."""
+    val = get_value(key)
+    try:
+        return int(val) if val else default
+    except ValueError:
+        return default
+
+
 def set_value(key: str, value: str) -> None:
     """Set a config value and persist to disk."""
     config = load_config()

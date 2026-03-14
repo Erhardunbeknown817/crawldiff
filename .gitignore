@@ -21,6 +21,4 @@ env/
 *.log
 .DS_Store
 
-CLAUDE.md
-PLAN.md
 scripts/

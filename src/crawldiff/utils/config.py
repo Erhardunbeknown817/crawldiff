@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import os
+import stat
 from pathlib import Path
 from typing import Any
 
@@ -61,10 +62,12 @@ def load_config() -> dict[str, Any]:
 
 
 def save_config(config: dict[str, Any]) -> None:
-    """Write config to disk."""
+    """Write config to disk with restricted permissions."""
     ensure_dir()
     with open(CONFIG_PATH, "w") as f:
         json.dump(config, f, indent=2)
+    # Restrict to owner-only (contains API tokens)
+    CONFIG_PATH.chmod(stat.S_IRUSR | stat.S_IWUSR)
 
 
 def get_value(key: str) -> str:

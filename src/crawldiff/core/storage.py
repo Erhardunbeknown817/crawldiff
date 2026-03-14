@@ -83,8 +83,9 @@ def get_db(db_path: Path | None = None) -> sqlite3.Connection:
     """Open (and initialize) the database."""
     path = db_path or DB_PATH
     ensure_dir()
-    conn = sqlite3.connect(str(path))
+    conn = sqlite3.connect(str(path), timeout=10)
     conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA journal_mode=WAL")
     conn.executescript(SCHEMA)
     return conn
 

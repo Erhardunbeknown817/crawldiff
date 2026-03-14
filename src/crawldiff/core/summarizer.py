@@ -89,15 +89,18 @@ async def _summarize_cloudflare(prompt: str, config: SummaryConfig) -> str:
         f"{config.cf_account_id}/ai/run/{model}"
     )
 
-    async with httpx.AsyncClient(timeout=60) as client:
-        resp = await client.post(
-            url,
-            headers={
-                "Authorization": f"Bearer {config.cf_api_token}",
-                "Content-Type": "application/json",
-            },
-            json={"prompt": prompt},
-        )
+    try:
+        async with httpx.AsyncClient(timeout=60) as client:
+            resp = await client.post(
+                url,
+                headers={
+                    "Authorization": f"Bearer {config.cf_api_token}",
+                    "Content-Type": "application/json",
+                },
+                json={"prompt": prompt},
+            )
+    except Exception as e:  # noqa: BLE001 — catch all API/network errors gracefully
+        return f"[AI summary failed: {e}]"
 
     if resp.status_code != 200:
         return f"[AI summary failed: {resp.status_code}]"

@@ -258,7 +258,10 @@ def _handle_error(resp: httpx.Response) -> None:
 
     # Raise retryable error for rate limits
     if status == 429:
-        retry_after = int(resp.headers.get("Retry-After", "0"))
+        try:
+            retry_after = int(resp.headers.get("Retry-After", "0"))
+        except ValueError:
+            retry_after = 0
         raise _RateLimitError(retry_after)
 
     try:

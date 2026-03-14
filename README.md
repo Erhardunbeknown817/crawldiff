@@ -140,14 +140,14 @@ Don't want AI? Just use `--no-summary`. Diffs work fine without it.
 
 ```
 1. crawldiff crawl <url>
-   └─→ Cloudflare /crawl API (headless browser, respects robots.txt)
-   └─→ Store Markdown snapshots in local SQLite (~/.crawldiff/)
+   ├── Cloudflare /crawl API (headless browser, respects robots.txt)
+   └── Store Markdown snapshots in local SQLite (~/.crawldiff/)
 
 2. crawldiff diff <url> --since 7d
-   └─→ Cloudflare /crawl with modifiedSince (only fetches changed pages)
-   └─→ Diff against stored snapshot (unified diff via difflib)
-   └─→ AI summary (optional)
-   └─→ Syntax-highlighted diffs in the terminal (via rich)
+   ├── Cloudflare /crawl with modifiedSince (only fetches changed pages)
+   ├── Diff against stored snapshot (unified diff via difflib)
+   ├── AI summary (optional)
+   └── Syntax-highlighted diffs in the terminal (via rich)
 ```
 
 Cloudflare's `modifiedSince` parameter means repeat diffs only fetch changed pages, not the entire site.

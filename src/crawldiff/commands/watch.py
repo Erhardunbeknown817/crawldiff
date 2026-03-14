@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import signal
+from collections.abc import Callable
 from datetime import UTC, datetime
 
 import typer
@@ -53,7 +54,13 @@ def watch(
     err.print("[dim]Press Ctrl+C to stop[/dim]\n")
 
     # Handle SIGTERM (Docker, systemd) same as Ctrl+C
-    signal.signal(signal.SIGTERM, lambda *_: _raise_keyboard_interrupt())
+    _shutdown = False
+
+    def _handle_sigterm(*_: object) -> None:
+        nonlocal _shutdown
+        _shutdown = True
+
+    signal.signal(signal.SIGTERM, _handle_sigterm)
 
     try:
         asyncio.run(_watch_loop(
@@ -62,13 +69,10 @@ def watch(
             depth=depth,
             max_pages=max_pages,
             no_summary=no_summary,
+            shutdown_flag=lambda: _shutdown,
         ))
     except KeyboardInterrupt:
         err.print("\n[dim]Stopped watching.[/dim]")
-
-
-def _raise_keyboard_interrupt() -> None:
-    raise KeyboardInterrupt
 
 
 async def _watch_loop(
@@ -80,13 +84,14 @@ async def _watch_loop(
     depth: int,
     max_pages: int,
     no_summary: bool,
+    shutdown_flag: Callable[[], bool] = lambda: False,
 ) -> None:
     """Main watch loop."""
     check_count = 0
     consecutive_failures = 0
     max_consecutive_failures = 5
 
-    while True:
+    while not shutdown_flag():
         check_count += 1
         now = datetime.now(UTC)
         err.print(f"[cyan]Check #{check_count}[/cyan] at {now.strftime('%H:%M:%S UTC')}")
@@ -149,9 +154,12 @@ async def _watch_loop(
         finally:
             conn.close()
 
-        # Wait for next interval
+        # Wait for next interval, checking shutdown flag periodically
         err.print(f"[dim]Next check in {_format_seconds(interval)}...[/dim]\n")
-        await asyncio.sleep(interval)
+        elapsed = 0
+        while elapsed < interval and not shutdown_flag():
+            await asyncio.sleep(min(1, interval - elapsed))
+            elapsed += 1
 
 
 

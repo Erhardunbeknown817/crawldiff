@@ -1,7 +1,6 @@
 """Rich terminal output for crawldiff.
 
-This is the viral piece — beautiful git-style diffs in the terminal.
-Uses rich for panels, colored diffs, tables, and spinners.
+Renders diffs with git-style coloring and panels using rich.
 """
 
 from __future__ import annotations

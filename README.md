@@ -148,7 +148,7 @@ Don't want AI? Just use `--no-summary`. Diffs work perfectly without it.
    └─→ Cloudflare /crawl with modifiedSince (only fetches changed pages)
    └─→ Diff against stored snapshot (unified diff via difflib)
    └─→ AI summary (optional)
-   └─→ Beautiful terminal output via rich
+   └─→ Syntax-highlighted diffs in the terminal (via rich)
 ```
 
 The key insight: Cloudflare's `modifiedSince` parameter means **incremental crawling is built-in**. On repeat diffs, only changed pages are fetched. Fast and cheap.

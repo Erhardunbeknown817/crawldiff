@@ -20,6 +20,8 @@ err = Console(stderr=True)
 BASE_URL = "https://api.cloudflare.com/client/v4/accounts"
 POLL_INTERVAL = 3  # seconds between status checks
 MAX_POLL_ATTEMPTS = 200  # ~10 minutes max wait
+MAX_RETRIES = 3  # retry on transient errors
+RETRY_BASE_DELAY = 5  # seconds, doubles on each retry
 
 
 class CrawlStatus(Enum):
@@ -93,14 +95,9 @@ async def start_crawl(
         # Cloudflare expects unix timestamp in seconds
         body["modifiedSince"] = int(modified_since.timestamp())
 
-    async with httpx.AsyncClient(timeout=30) as client:
-        resp = await client.post(
-            _crawl_url(account_id),
-            headers=_build_headers(api_token),
-            json=body,
-        )
-
-    _handle_error(resp)
+    resp = await _request_with_retry(
+        "POST", _crawl_url(account_id), api_token, json=body,
+    )
     data = resp.json()
 
     # Result is a plain string (the job ID) on success
@@ -121,13 +118,9 @@ async def get_crawl_result(
     job_id: str,
 ) -> CrawlResult:
     """Fetch the current state of a crawl job."""
-    async with httpx.AsyncClient(timeout=30) as client:
-        resp = await client.get(
-            f"{_crawl_url(account_id)}/{job_id}",
-            headers=_build_headers(api_token),
-        )
-
-    _handle_error(resp)
+    resp = await _request_with_retry(
+        "GET", f"{_crawl_url(account_id)}/{job_id}", api_token,
+    )
     data = resp.json()
     result = data.get("result", {})
 
@@ -206,12 +199,60 @@ async def wait_for_crawl(
     )
 
 
+async def _request_with_retry(
+    method: str,
+    url: str,
+    api_token: str,
+    **kwargs: Any,
+) -> httpx.Response:
+    """Make an HTTP request with retry on rate limits and transient errors."""
+    for attempt in range(MAX_RETRIES + 1):
+        try:
+            async with httpx.AsyncClient(timeout=30) as client:
+                resp = await client.request(
+                    method, url, headers=_build_headers(api_token), **kwargs,
+                )
+            _handle_error(resp)
+            return resp
+        except _RateLimitError as e:
+            if attempt >= MAX_RETRIES:
+                raise CloudflareError(
+                    "Rate limited by Cloudflare after retries. Try again later."
+                ) from e
+            delay = e.retry_after or (RETRY_BASE_DELAY * (2 ** attempt))
+            err.print(f"[yellow]Rate limited, retrying in {delay}s...[/yellow]")
+            await asyncio.sleep(delay)
+        except httpx.TimeoutException as e:
+            if attempt >= MAX_RETRIES:
+                raise CloudflareError(
+                    "Request timed out after retries. Check your network."
+                ) from e
+            delay = RETRY_BASE_DELAY * (2 ** attempt)
+            err.print(f"[yellow]Timeout, retrying in {delay}s...[/yellow]")
+            await asyncio.sleep(delay)
+    raise CloudflareError("Request failed after retries.")  # unreachable but satisfies mypy
+
+
+class _RateLimitError(CloudflareError):
+    """Raised on 429 responses to trigger retry logic."""
+
+    def __init__(self, retry_after: int = 0) -> None:
+        self.retry_after = retry_after
+        super().__init__("Rate limited by Cloudflare.")
+
+
 def _handle_error(resp: httpx.Response) -> None:
     """Convert HTTP errors into user-friendly CloudflareError."""
     if resp.status_code == 200:
         return
 
     status = resp.status_code
+
+    # Raise retryable error for rate limits
+    if status == 429:
+        retry_after = int(resp.headers.get("Retry-After", "0"))
+        raise _RateLimitError(retry_after)
+
     try:
         body = resp.json()
         errors = body.get("errors", [])
@@ -225,7 +266,6 @@ def _handle_error(resp: httpx.Response) -> None:
     error_map: dict[int, str] = {
         401: "Invalid API token. Check your cloudflare.api_token config.",
         403: "Access denied. Your token may lack the required permissions.",
-        429: "Rate limited by Cloudflare. Wait a moment and try again.",
     }
 
     prefix = error_map.get(status, f"Cloudflare API error ({status})")

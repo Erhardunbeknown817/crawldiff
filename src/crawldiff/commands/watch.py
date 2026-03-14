@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import signal
 from datetime import UTC, datetime
 
 import typer
@@ -51,6 +52,9 @@ def watch(
     err.print(f"[bold]Watching[/bold] {normalized} every {every}")
     err.print("[dim]Press Ctrl+C to stop[/dim]\n")
 
+    # Handle SIGTERM (Docker, systemd) same as Ctrl+C
+    signal.signal(signal.SIGTERM, lambda *_: _raise_keyboard_interrupt())
+
     try:
         asyncio.run(_watch_loop(
             account_id, api_token, normalized,
@@ -61,6 +65,10 @@ def watch(
         ))
     except KeyboardInterrupt:
         err.print("\n[dim]Stopped watching.[/dim]")
+
+
+def _raise_keyboard_interrupt() -> None:
+    raise KeyboardInterrupt
 
 
 async def _watch_loop(

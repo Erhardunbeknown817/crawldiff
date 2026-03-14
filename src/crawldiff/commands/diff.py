@@ -137,16 +137,23 @@ async def _do_diff(
         elif format == "markdown":
             md = render_diff_markdown(diff_result, url, ai_summary)
             if output_path:
-                Path(output_path).write_text(md)
+                _write_output(output_path, md)
             else:
                 sys.stdout.write(md)
         else:  # terminal
             print_diff_result(diff_result, url, since=since, ai_summary=ai_summary)
             if output_path:
                 md = render_diff_markdown(diff_result, url, ai_summary)
-                Path(output_path).write_text(md)
+                _write_output(output_path, md)
 
     finally:
         conn.close()
 
 
+def _write_output(path: str, content: str) -> None:
+    """Write output to a file with error handling."""
+    try:
+        Path(path).write_text(content)
+    except OSError as e:
+        print_error(f"Failed to write output file: {e}")
+        raise typer.Exit(1) from None

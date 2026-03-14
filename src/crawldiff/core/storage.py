@@ -97,7 +97,9 @@ def get_or_create_site(conn: sqlite3.Connection, url: str) -> int:
         return int(row["id"])
     cursor = conn.execute("INSERT INTO sites (url) VALUES (?)", (url,))
     conn.commit()
-    assert cursor.lastrowid is not None
+    if cursor.lastrowid is None:
+        msg = "Database insert failed: no row ID returned"
+        raise RuntimeError(msg)
     return cursor.lastrowid
 
 
@@ -161,10 +163,10 @@ def get_snapshots_before(
     rows = conn.execute(
         """SELECT s.* FROM snapshots s
            INNER JOIN (
-               SELECT url, MAX(crawled_at) as max_at
+               SELECT url, MAX(id) as max_id
                FROM snapshots WHERE site_id = ? AND crawled_at <= ?
                GROUP BY url
-           ) latest ON s.url = latest.url AND s.crawled_at = latest.max_at
+           ) latest ON s.id = latest.max_id
            WHERE s.site_id = ?""",
         (site_id, before_str, site_id),
     ).fetchall()
@@ -189,7 +191,7 @@ def list_crawls(conn: sqlite3.Connection, site_url: str) -> list[CrawlRecord]:
 
     site_id = site_id_row["id"]
     rows = conn.execute(
-        """SELECT crawl_job_id, MIN(crawled_at) as crawled_at, COUNT(*) as page_count
+        """SELECT crawl_job_id, MAX(crawled_at) as crawled_at, COUNT(*) as page_count
            FROM snapshots WHERE site_id = ?
            GROUP BY crawl_job_id
            ORDER BY crawled_at DESC""",
@@ -222,5 +224,7 @@ def save_diff_record(
         (site_id, old_job_id, new_job_id, pages_added, pages_removed, pages_changed, ai_summary),
     )
     conn.commit()
-    assert cursor.lastrowid is not None
+    if cursor.lastrowid is None:
+        msg = "Database insert failed: no row ID returned"
+        raise RuntimeError(msg)
     return cursor.lastrowid

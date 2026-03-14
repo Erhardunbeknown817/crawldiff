@@ -18,10 +18,15 @@ def normalize_url(url: str) -> str:
     parsed = urlparse(url)
     # Lowercase hostname
     hostname = (parsed.hostname or "").lower()
+    # Handle invalid port numbers gracefully
+    try:
+        port_part = f":{parsed.port}" if parsed.port else ""
+    except ValueError:
+        port_part = ""
     # Rebuild with normalized parts
     normalized = urlunparse((
         parsed.scheme,
-        hostname + (f":{parsed.port}" if parsed.port else ""),
+        hostname + port_part,
         parsed.path.rstrip("/") or "/",
         parsed.params,
         parsed.query,

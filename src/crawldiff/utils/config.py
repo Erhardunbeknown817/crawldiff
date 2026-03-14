@@ -26,7 +26,7 @@ DEFAULT_CONFIG: dict[str, Any] = {
         "api_key": "",
     },
     "defaults": {
-        "format": "markdown",
+        "format": "terminal",
         "depth": 2,
         "max_pages": 50,
     },

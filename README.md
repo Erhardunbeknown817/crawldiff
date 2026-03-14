@@ -4,7 +4,7 @@
     <strong><code>git log</code> for any website.</strong>
   </p>
   <p align="center">
-    Track what changed on any website. Get git-style diffs with AI-powered summaries.<br/>
+    Track what changed on any website. Git-style diffs with optional AI summaries.<br/>
     Powered by Cloudflare's <a href="https://developers.cloudflare.com/browser-rendering/rest-api/crawl-endpoint/">/crawl</a> endpoint.
   </p>
   <p align="center">
@@ -133,7 +133,7 @@ crawldiff config set ai.provider openai
 export OPENAI_API_KEY="sk-..."
 ```
 
-Don't want AI? Just use `--no-summary`. Diffs work perfectly without it.
+Don't want AI? Just use `--no-summary`. Diffs work fine without it.
 
 ## How it works
 

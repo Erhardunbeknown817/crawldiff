@@ -19,7 +19,7 @@
 ---
 
 <p align="center">
-  <img src="assets/demo.svg" alt="crawldiff demo" width="750">
+  <img src="https://raw.githubusercontent.com/GeoRouv/crawldiff/main/assets/demo.svg" alt="crawldiff demo" width="750">
 </p>
 
 ```bash

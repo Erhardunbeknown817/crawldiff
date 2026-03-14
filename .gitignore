@@ -19,6 +19,8 @@ env/
 .env.*
 !.env.example
 *.log
+.coverage
+htmlcov/
 .DS_Store
 
 scripts/

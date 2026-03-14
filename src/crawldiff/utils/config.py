@@ -50,8 +50,11 @@ def ensure_dir() -> None:
 def load_config() -> dict[str, Any]:
     """Load config from file, falling back to defaults."""
     if CONFIG_PATH.exists():
-        with open(CONFIG_PATH) as f:
-            stored = json.load(f)
+        try:
+            with open(CONFIG_PATH) as f:
+                stored = json.load(f)
+        except (json.JSONDecodeError, OSError):
+            return DEFAULT_CONFIG.copy()
         # Merge with defaults (stored values win)
         return _deep_merge(DEFAULT_CONFIG, stored)
     return DEFAULT_CONFIG.copy()

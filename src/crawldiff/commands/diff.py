@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
@@ -45,10 +46,12 @@ def diff(
     # Apply config defaults when CLI defaults are unchanged
     if depth == 2:
         val = get_value("defaults.depth")
-        depth = int(val) if val else 2
+        with contextlib.suppress(ValueError):
+            depth = int(val) if val else 2
     if max_pages == 50:
         val = get_value("defaults.max_pages")
-        max_pages = int(val) if val else 50
+        with contextlib.suppress(ValueError):
+            max_pages = int(val) if val else 50
 
     normalized = normalize_url(url)
     try:

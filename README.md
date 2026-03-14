@@ -176,7 +176,7 @@ crawldiff config set|get|show   Manage settings
 
 ## Contributing
 
-Contributions welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for setup and guidelines.
+Pull requests and bug reports are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) to get started.
 
 ## License
 

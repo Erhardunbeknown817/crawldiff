@@ -87,9 +87,14 @@ async def _watch_loop(
                 {"url": p.url, "markdown": p.markdown, "html": p.html}
                 for p in result.pages
             ]
-            save_snapshot(conn, url, new_page_dicts, job_id)
+            if new_page_dicts:
+                save_snapshot(conn, url, new_page_dicts, job_id)
 
-            if old_pages:
+            if not old_pages:
+                err.print(f"[green]Initial snapshot saved ({len(result.pages)} pages)[/green]")
+            elif not new_page_dicts:
+                err.print("[dim]No changes detected.[/dim]")
+            else:
                 new_pages = get_snapshots_by_job(conn, job_id)
                 diff_result = diff_snapshots(old_pages, new_pages)
 
@@ -103,8 +108,6 @@ async def _watch_loop(
                     print_diff_result(diff_result, url, ai_summary=ai_summary)
                 else:
                     err.print("[dim]No changes detected.[/dim]")
-            else:
-                err.print(f"[green]Initial snapshot saved ({len(result.pages)} pages)[/green]")
 
             consecutive_failures = 0
 

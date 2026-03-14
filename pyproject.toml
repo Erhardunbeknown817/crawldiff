@@ -1,10 +1,10 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
 name = "crawldiff"
-version = "0.1.1"
+dynamic = ["version"]
 description = "git log for any website. Track what changed on any site with AI-powered summaries."
 readme = "README.md"
 license = "MIT"
@@ -52,6 +52,12 @@ crawldiff = "crawldiff.cli:app"
 Homepage = "https://github.com/GeoRouv/crawldiff"
 Repository = "https://github.com/GeoRouv/crawldiff"
 Issues = "https://github.com/GeoRouv/crawldiff/issues"
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.version.raw-options]
+version_scheme = "no-guess-dev"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/crawldiff"]

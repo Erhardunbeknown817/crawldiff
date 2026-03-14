@@ -1,3 +1,8 @@
 """crawldiff — git log for any website."""
 
-__version__ = "0.1.1"
+from importlib.metadata import PackageNotFoundError, version
+
+try:
+    __version__: str = version("crawldiff")
+except PackageNotFoundError:
+    __version__ = "0.0.0"

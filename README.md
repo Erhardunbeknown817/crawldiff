@@ -35,7 +35,7 @@ crawldiff diff https://stripe.com/pricing --since 7d
 
 ## What is this
 
-A CLI tool for tracking website changes over time. It crawls pages via Cloudflare's [`/crawl` endpoint](https://blog.cloudflare.com/crawl-entire-websites-with-a-single-api-call-using-browser-rendering/), stores markdown snapshots locally in SQLite, and produces unified diffs between crawls. Optionally summarizes changes with AI.
+A CLI tool for tracking website changes over time. It crawls pages via Cloudflare's [`/crawl` endpoint](https://developers.cloudflare.com/changelog/post/2026-03-10-br-crawl-endpoint/), stores markdown snapshots locally in SQLite, and produces unified diffs between crawls. Optionally summarizes changes with AI.
 
 No SaaS subscriptions. No proprietary dashboards. Just `crawldiff diff`.
 

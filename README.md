@@ -35,7 +35,7 @@ crawldiff diff https://stripe.com/pricing --since 7d
 
 ## What is this
 
-A CLI tool for tracking website changes over time. It crawls pages via Cloudflare's [`/crawl` endpoint](https://developers.cloudflare.com/changelog/post/2026-03-10-br-crawl-endpoint/), stores markdown snapshots locally in SQLite, and produces unified diffs between crawls. Optionally summarizes changes with AI.
+A CLI tool for tracking website changes over time. It crawls pages via Cloudflare's [`/crawl` endpoint](https://developers.cloudflare.com/browser-rendering/rest-api/crawl-endpoint/), stores markdown snapshots locally in SQLite, and produces unified diffs between crawls. Optionally summarizes changes with AI.
 
 No SaaS subscriptions. No proprietary dashboards. Just `crawldiff diff`.
 
@@ -51,7 +51,7 @@ pip install crawldiff
 export CLOUDFLARE_ACCOUNT_ID="your-account-id"
 export CLOUDFLARE_API_TOKEN="your-api-token"
 
-# Or save to config
+# Or save to config (env vars take precedence over config file)
 crawldiff config set cloudflare.account_id your-id
 crawldiff config set cloudflare.api_token your-token
 ```
@@ -101,7 +101,7 @@ crawldiff history https://stripe.com/pricing
 └────────────────┴─────────────────────┴───────┘
 ```
 
-### Crawl options
+### More options
 
 ```bash
 # Deeper crawl
@@ -110,7 +110,7 @@ crawldiff crawl https://docs.react.dev --depth 3 --max-pages 100
 # Static sites (faster, no browser rendering)
 crawldiff crawl https://blog.example.com --no-render
 
-# Ignore whitespace noise
+# Ignore whitespace noise in diffs
 crawldiff diff https://example.com --since 7d --ignore-whitespace
 ```
 
@@ -156,10 +156,10 @@ Cloudflare's `modifiedSince` parameter means repeat diffs only fetch changed pag
 | | crawldiff | Visualping | changedetection.io | Firecrawl |
 |---|---|---|---|---|
 | Open source | Yes | No | Yes | Yes |
-| CLI-native | Yes | No | No | No |
-| AI summaries | Yes | No | No | No |
+| CLI-native | Yes | No | API | API |
+| AI summaries | Built-in | No | Via plugins | Built-in |
 | Incremental crawling | Yes (`modifiedSince`) | No | No | No |
-| Local storage | Yes | No | No | No |
+| Local-first storage | SQLite | Cloud | Self-host or cloud | Cloud |
 | JSON/pipe output | Yes | No | Yes | Yes |
 | Free tier | 5 jobs/day, 100 pages | Limited | Yes (self-host) | 500 credits |
 

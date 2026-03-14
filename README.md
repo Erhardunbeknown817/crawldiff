@@ -39,7 +39,7 @@ Every website monitoring tool is a SaaS dashboard built for marketing teams.
 
 **crawldiff** is for developers. It's a CLI. It diffs like git. It summarizes with AI. It stores everything locally. And it's powered by Cloudflare's brand new [`/crawl` endpoint](https://blog.cloudflare.com/crawl-entire-websites-with-a-single-api-call-using-browser-rendering/) — the same infrastructure that powers the internet.
 
-No accounts. No subscriptions. No GUI. Just `crawldiff diff`.
+No SaaS subscriptions. No proprietary dashboards. Just `crawldiff diff`.
 
 ## Setup (30 seconds)
 

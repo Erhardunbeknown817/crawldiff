@@ -53,6 +53,11 @@ def diff(
         with contextlib.suppress(ValueError):
             max_pages = int(val) if val else 50
 
+    valid_formats = {"terminal", "json", "markdown"}
+    if format not in valid_formats:
+        print_error(f"Invalid format: '{format}'. Choose from: {', '.join(sorted(valid_formats))}")
+        raise typer.Exit(1) from None
+
     normalized = normalize_url(url)
     try:
         asyncio.run(_do_diff(

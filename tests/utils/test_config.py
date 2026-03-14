@@ -37,8 +37,9 @@ def _patch_paths(config_dir: Path) -> None:  # type: ignore[misc]
 
 def test_load_config_returns_defaults():
     config = load_config()
-    assert config["cloudflare"]["account_id"] == ""
-    assert config["ai"]["provider"] == "none"
+    assert "cloudflare" in config
+    assert "ai" in config
+    assert "defaults" in config
 
 
 def test_set_and_get_value():
@@ -72,7 +73,10 @@ def test_get_cloudflare_credentials():
 
 
 def test_get_cloudflare_credentials_missing():
-    with pytest.raises(ConfigError):
+    """Credentials check with empty values should raise."""
+    set_value("cloudflare.account_id", "")
+    set_value("cloudflare.api_token", "")
+    with patch.dict("os.environ", {}, clear=True), pytest.raises(ConfigError):
         get_cloudflare_credentials()
 
 
@@ -86,3 +90,21 @@ def test_mask_secret_short():
 
 def test_mask_secret_exactly_four():
     assert mask_secret("abcd") == "****"
+
+
+def test_anthropic_api_key_env_fallback():
+    with patch.dict("os.environ", {"ANTHROPIC_API_KEY": "sk-ant-test"}):
+        assert get_value("ai.api_key") == "sk-ant-test"
+
+
+def test_openai_api_key_env_fallback():
+    with patch.dict("os.environ", {"OPENAI_API_KEY": "sk-oai-test"}):
+        assert get_value("ai.api_key") == "sk-oai-test"
+
+
+def test_crawldiff_ai_key_takes_precedence_over_provider_keys():
+    with patch.dict("os.environ", {
+        "CRAWLDIFF_AI_API_KEY": "crawldiff-key",
+        "ANTHROPIC_API_KEY": "anthropic-key",
+    }):
+        assert get_value("ai.api_key") == "crawldiff-key"

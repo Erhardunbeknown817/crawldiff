@@ -32,13 +32,13 @@ DEFAULT_CONFIG: dict[str, Any] = {
     },
 }
 
-# Env var mapping: config key → env var name
-ENV_VARS: dict[str, str] = {
-    "cloudflare.account_id": "CLOUDFLARE_ACCOUNT_ID",
-    "cloudflare.api_token": "CLOUDFLARE_API_TOKEN",
-    "ai.api_key": "CRAWLDIFF_AI_API_KEY",
-    "ai.provider": "CRAWLDIFF_AI_PROVIDER",
-    "ai.model": "CRAWLDIFF_AI_MODEL",
+# Env var mapping: config key → env var names (checked in order)
+ENV_VARS: dict[str, list[str]] = {
+    "cloudflare.account_id": ["CLOUDFLARE_ACCOUNT_ID"],
+    "cloudflare.api_token": ["CLOUDFLARE_API_TOKEN"],
+    "ai.api_key": ["CRAWLDIFF_AI_API_KEY", "ANTHROPIC_API_KEY", "OPENAI_API_KEY"],
+    "ai.provider": ["CRAWLDIFF_AI_PROVIDER"],
+    "ai.model": ["CRAWLDIFF_AI_MODEL"],
 }
 
 
@@ -66,9 +66,9 @@ def save_config(config: dict[str, Any]) -> None:
 
 def get_value(key: str) -> str:
     """Get a config value. Env vars take precedence over file."""
-    # Check env var first
-    env_var = ENV_VARS.get(key)
-    if env_var:
+    # Check env vars first (multiple fallbacks supported)
+    env_vars = ENV_VARS.get(key, [])
+    for env_var in env_vars:
         env_val = os.environ.get(env_var, "")
         if env_val:
             return env_val

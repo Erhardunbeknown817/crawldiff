@@ -57,6 +57,9 @@ def diff(
     except cloudflare.CloudflareError as e:
         print_error(str(e))
         raise typer.Exit(1) from None
+    except Exception as e:  # noqa: BLE001
+        print_error(f"Unexpected error: {e}")
+        raise typer.Exit(1) from None
 
 
 async def _do_diff(

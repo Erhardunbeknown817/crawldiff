@@ -119,6 +119,14 @@ async def _watch_loop(
                     f"Stopping after {max_consecutive_failures} consecutive failures."
                 )
                 raise typer.Exit(1) from None
+        except Exception as e:  # noqa: BLE001
+            consecutive_failures += 1
+            print_error(f"Unexpected error: {e}")
+            if consecutive_failures >= max_consecutive_failures:
+                print_error(
+                    f"Stopping after {max_consecutive_failures} consecutive failures."
+                )
+                raise typer.Exit(1) from None
         finally:
             conn.close()
 

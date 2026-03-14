@@ -33,6 +33,9 @@ def crawl(
     except cloudflare.CloudflareError as e:
         print_error(str(e))
         raise typer.Exit(1) from None
+    except Exception as e:  # noqa: BLE001
+        print_error(f"Unexpected error: {e}")
+        raise typer.Exit(1) from None
 
 
 async def _do_crawl(
@@ -69,11 +72,12 @@ async def _do_crawl(
         for page in result.pages
     ]
 
-    conn = get_db()
-    try:
-        save_snapshot(conn, url, pages, job_id)
-    finally:
-        conn.close()
+    if pages:
+        conn = get_db()
+        try:
+            save_snapshot(conn, url, pages, job_id)
+        finally:
+            conn.close()
 
     elapsed = time.time() - start
     print_crawl_summary(url, len(result.pages), elapsed)

